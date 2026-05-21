@@ -1,0 +1,1305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REST API Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: Manrope, sans-serif;
+        background: #f7f4ed;
+        color: #111;
+        font-size: 14px;
+      }
+
+      /* ── Header ── */
+      header {
+        background: #111;
+        color: #fff;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      header h1 {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .hn {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .hn a {
+        color: #aaa;
+        font-size: 12px;
+        text-decoration: none;
+      }
+      .hn a:hover {
+        color: #fff;
+      }
+      #auth-pill {
+        font-size: 11px;
+        background: #222;
+        padding: 4px 12px;
+        border-radius: 99px;
+        border: 1px solid #333;
+      }
+
+      /* ── Layout ── */
+      .workspace {
+        display: grid;
+        grid-template-columns: 320px 1fr;
+        min-height: calc(100vh - 45px);
+      }
+      .sidebar {
+        background: #fff;
+        border-right: 1px solid #e5e0d4;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        overflow-y: auto;
+        max-height: calc(100vh - 45px);
+      }
+      .main {
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        overflow-y: auto;
+        max-height: calc(100vh - 45px);
+        padding-bottom: 260px;
+      }
+
+      /* ── Card ── */
+      .card {
+        background: #fff;
+        border: 1px solid #e5e0d4;
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .card-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin-bottom: 12px;
+      }
+
+      /* ── Forms ── */
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        margin-bottom: 8px;
+      }
+      .field label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #666;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 7px 9px;
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        font-size: 13px;
+        font-family: inherit;
+        background: #fafafa;
+        color: #111;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #111;
+        background: #fff;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 50px;
+      }
+
+      /* ── Buttons ── */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 12px;
+        border: none;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        white-space: nowrap;
+      }
+      .btn:hover {
+        opacity: 0.82;
+      }
+      .btn-dark {
+        background: #111;
+        color: #fff;
+      }
+      .btn-green {
+        background: #15803d;
+        color: #fff;
+      }
+      .btn-blue {
+        background: #1d4ed8;
+        color: #fff;
+      }
+      .btn-orange {
+        background: #c2410c;
+        color: #fff;
+      }
+      .btn-purple {
+        background: #7c3aed;
+        color: #fff;
+      }
+      .btn-red {
+        background: #b91c1c;
+        color: #fff;
+      }
+      .btn-ghost {
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e0d4;
+      }
+      .btn-sm {
+        padding: 5px 9px;
+        font-size: 11px;
+      }
+      .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      /* ── HTTP method badges ── */
+      .m {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 1px 5px;
+        border-radius: 4px;
+      }
+      .get {
+        background: #dcfce7;
+        color: #15803d;
+      }
+      .post {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .put {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .patch {
+        background: #ede9fe;
+        color: #6d28d9;
+      }
+      .delete {
+        background: #fee2e2;
+        color: #b91c1c;
+      }
+
+      /* ── Table ── */
+      .tbl-wrap {
+        overflow-x: auto;
+        margin-top: 10px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      th {
+        background: #f9f8f5;
+        text-align: left;
+        padding: 7px 9px;
+        font-weight: 700;
+        color: #666;
+        border-bottom: 1px solid #e5e0d4;
+      }
+      td {
+        padding: 7px 9px;
+        border-bottom: 1px solid #f0ede6;
+        vertical-align: middle;
+      }
+      tr:hover td {
+        background: #fafaf8;
+      }
+
+      /* ── Filters ── */
+      .fgrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 7px;
+        margin-bottom: 10px;
+      }
+
+      /* ── Pagination ── */
+      .pager {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        font-size: 12px;
+        color: #666;
+      }
+
+      /* ── Stats ── */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .stat-box {
+        background: #f9f8f5;
+        border-radius: 9px;
+        padding: 10px;
+        text-align: center;
+      }
+      .stat-box .v {
+        font-size: 20px;
+        font-weight: 700;
+      }
+      .stat-box .l {
+        font-size: 10px;
+        color: #888;
+        margin-top: 2px;
+      }
+
+      /* ── Category list ── */
+      .cat-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 5px 8px;
+        background: #f9f8f5;
+        border-radius: 7px;
+        margin-bottom: 4px;
+        font-size: 12px;
+      }
+
+      /* ── Reviews ── */
+      .review-row {
+        padding: 8px;
+        background: #f9f8f5;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        font-size: 12px;
+      }
+      .stars {
+        color: #f59e0b;
+        font-size: 13px;
+      }
+
+      /* ── Response panel ── */
+      #resp-panel {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 440px;
+        background: #111;
+        border-top-left-radius: 12px;
+        z-index: 200;
+        box-shadow: -4px -4px 24px rgba(0, 0, 0, 0.3);
+      }
+      #resp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 9px 14px;
+        border-bottom: 1px solid #222;
+        cursor: pointer;
+      }
+      #resp-header span {
+        font-size: 12px;
+        font-weight: 600;
+        color: #bbb;
+      }
+      .rs {
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 99px;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .rs-ok {
+        background: #14532d;
+        color: #4ade80;
+      }
+      .rs-err {
+        background: #450a0a;
+        color: #f87171;
+      }
+      .rs-neu {
+        background: #1e1e1e;
+        color: #888;
+      }
+      #resp-body {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #9ee7a7;
+        padding: 10px 14px;
+        max-height: 200px;
+        overflow-y: auto;
+        margin: 0;
+        display: block;
+        line-height: 1.5;
+      }
+
+      hr.sep {
+        border: none;
+        border-top: 1px solid #f0ede6;
+        margin: 10px 0;
+      }
+
+      /* ── Inline row ── */
+      .irow {
+        display: flex;
+        gap: 6px;
+        align-items: flex-end;
+      }
+      .irow .field {
+        flex: 1;
+        margin-bottom: 0;
+      }
+
+      @media (max-width: 800px) {
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+        #resp-panel {
+          width: 100%;
+          border-radius: 0;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>REST API Lab</h1>
+      <div class="hn">
+        <div id="auth-pill">Not logged in</div>
+        <a href="/concept.html">📖 Concept Notes</a><a href="/practice.html">🧪 Practice</a>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <!-- ════════ SIDEBAR ════════ -->
+      <div class="sidebar">
+        <!-- Auth -->
+        <div class="card">
+          <div class="card-title">Authentication</div>
+
+          <details open>
+            <summary
+              style="
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 8px;
+              "
+            >
+              <span class="m post">POST</span> /api/auth/register
+            </summary>
+            <div class="field">
+              <label>Username</label><input id="ru" placeholder="alice" />
+            </div>
+            <div class="field">
+              <label>Password</label
+              ><input id="rp" type="password" placeholder="min 8 chars" />
+            </div>
+            <div class="field">
+              <label>Role</label>
+              <select id="rr">
+                <option value="viewer">viewer — read only</option>
+                <option value="editor">editor — create &amp; update</option>
+                <option value="admin">admin — full access</option>
+              </select>
+            </div>
+            <button class="btn btn-blue btn-sm" onclick="register()">
+              Register
+            </button>
+          </details>
+
+          <hr class="sep" />
+
+          <details open>
+            <summary
+              style="
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 8px;
+              "
+            >
+              <span class="m post">POST</span> /api/auth/login
+            </summary>
+            <div class="field">
+              <label>Username</label><input id="lu" placeholder="alice" />
+            </div>
+            <div class="field">
+              <label>Password</label
+              ><input id="lp" type="password" placeholder="password" />
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-dark btn-sm" onclick="login()">
+                Login
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="logout()">
+                Logout
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="getMe()">
+                <span class="m get">GET</span> Me
+              </button>
+            </div>
+          </details>
+        </div>
+
+        <!-- Stats -->
+        <div class="card">
+          <div class="card-title">Database Stats</div>
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="v" id="st-u">—</div>
+              <div class="l">Users</div>
+            </div>
+            <div class="stat-box">
+              <div class="v" id="st-c">—</div>
+              <div class="l">Categories</div>
+            </div>
+            <div class="stat-box">
+              <div class="v" id="st-p">—</div>
+              <div class="l">Products</div>
+            </div>
+            <div class="stat-box">
+              <div class="v" id="st-s">—</div>
+              <div class="l">Total Stock</div>
+            </div>
+          </div>
+          <div class="btn-group" style="margin-top: 10px">
+            <button class="btn btn-ghost btn-sm" onclick="loadStats()">
+              <span class="m get">GET</span> Refresh
+            </button>
+            <button class="btn btn-orange btn-sm" onclick="seedData()">
+              <span class="m post">POST</span> Seed (admin)
+            </button>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="card">
+          <div class="card-title">Categories</div>
+          <button class="btn btn-ghost btn-sm" onclick="loadCategories()">
+            <span class="m get">GET</span> List categories
+          </button>
+          <div id="cat-list" style="margin-top: 8px"></div>
+          <hr class="sep" />
+          <div class="irow">
+            <div class="field">
+              <label>Name</label><input id="cn" placeholder="accessories" />
+            </div>
+            <button class="btn btn-green btn-sm" onclick="createCategory()">
+              <span class="m post">POST</span>
+            </button>
+          </div>
+          <div class="irow" style="margin-top: 5px">
+            <div class="field">
+              <label>ID to delete</label
+              ><input id="cd" type="number" placeholder="1" />
+            </div>
+            <button class="btn btn-red btn-sm" onclick="deleteCategoryInput()">
+              <span class="m delete">DEL</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Aggregates -->
+        <div class="card">
+          <div class="card-title">DB Queries</div>
+          <div class="btn-group">
+            <button class="btn btn-ghost btn-sm" onclick="loadAggregates()">
+              <span class="m get">GET</span> Aggregates
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="loadTopRated()">
+              <span class="m get">GET</span> Top Rated
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="loadLowStock()">
+              <span class="m get">GET</span> Low Stock
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════ MAIN ════════ -->
+      <div class="main">
+        <!-- Products list + filters -->
+        <div class="card">
+          <div
+            class="card-title"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+            "
+          >
+            Products
+            <button class="btn btn-ghost btn-sm" onclick="loadProducts()">
+              Refresh
+            </button>
+          </div>
+
+          <div class="fgrid">
+            <div class="field">
+              <label>Search (q)</label><input id="fq" placeholder="keyboard" />
+            </div>
+            <div class="field">
+              <label>Category</label><input id="fc" placeholder="electronics" />
+            </div>
+            <div class="field">
+              <label>Min price</label
+              ><input id="fminp" type="number" min="0" placeholder="0" />
+            </div>
+            <div class="field">
+              <label>Max price</label
+              ><input id="fmaxp" type="number" min="0" placeholder="999" />
+            </div>
+            <div class="field">
+              <label>Min stock</label
+              ><input id="fmins" type="number" min="0" placeholder="0" />
+            </div>
+            <div class="field">
+              <label>Max stock</label
+              ><input id="fmaxs" type="number" min="0" placeholder="999" />
+            </div>
+            <div class="field">
+              <label>Sort by</label>
+              <select id="fsort">
+                <option value="created_at">created_at</option>
+                <option value="id">id</option>
+                <option value="name">name</option>
+                <option value="price">price</option>
+                <option value="stock">stock</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Order</label>
+              <select id="forder">
+                <option value="desc">DESC</option>
+                <option value="asc">ASC</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Limit (max 50)</label
+              ><input id="flimit" type="number" value="10" min="1" max="50" />
+            </div>
+            <div class="field">
+              <label>Page</label
+              ><input id="fpage" type="number" value="1" min="1" />
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-dark btn-sm" onclick="loadProducts()">
+              <span class="m get">GET</span> Search
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="resetFilters()">
+              Reset
+            </button>
+          </div>
+
+          <div class="tbl-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Stock</th>
+                  <th>Description</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ptbody">
+                <tr>
+                  <td
+                    colspan="7"
+                    style="text-align: center; color: #aaa; padding: 18px"
+                  >
+                    Click Search or Refresh
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <button class="btn btn-ghost btn-sm" onclick="prevPage()">
+              ← Prev
+            </button>
+            <span id="page-info">—</span>
+            <button class="btn btn-ghost btn-sm" onclick="nextPage()">
+              Next →
+            </button>
+          </div>
+        </div>
+
+        <!-- Product CRUD form -->
+        <div class="card">
+          <div class="card-title">Product Operations</div>
+          <div
+            style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px"
+          >
+            <div class="field">
+              <label>Name</label><input id="pn" placeholder="USB-C Hub" />
+            </div>
+            <div class="field">
+              <label>Category</label
+              ><input id="pcat" placeholder="electronics" />
+            </div>
+            <div class="field">
+              <label>Price</label
+              ><input
+                id="ppr"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="24.99"
+              />
+            </div>
+            <div class="field">
+              <label>Stock</label
+              ><input id="pst" type="number" min="0" placeholder="0" />
+            </div>
+            <div class="field" style="grid-column: span 2">
+              <label>Description</label
+              ><input id="pdesc" placeholder="Short description" />
+            </div>
+          </div>
+          <div class="field" style="max-width: 180px; margin-top: 4px">
+            <label>Product ID (for GET / PUT / PATCH / DELETE)</label>
+            <input id="pid" type="number" placeholder="1" />
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-ghost" onclick="getProduct()">
+              <span class="m get">GET</span> Get one
+            </button>
+            <button class="btn btn-green" onclick="createProduct()">
+              <span class="m post">POST</span> Create
+            </button>
+            <button class="btn btn-orange" onclick="putProduct()">
+              <span class="m put">PUT</span> Full replace
+            </button>
+            <button class="btn btn-purple" onclick="patchProduct()">
+              <span class="m patch">PATCH</span> Partial update
+            </button>
+            <button class="btn btn-red" onclick="deleteProduct()">
+              <span class="m delete">DELETE</span> Delete
+            </button>
+          </div>
+        </div>
+
+        <!-- Stock management -->
+        <div class="card">
+          <div class="card-title">Stock Management</div>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr;
+              gap: 9px;
+              align-items: flex-end;
+            "
+          >
+            <div class="field">
+              <label>Product ID</label
+              ><input id="sid" type="number" placeholder="1" />
+            </div>
+            <div class="field">
+              <label>Qty</label
+              ><input id="sqty" type="number" min="1" placeholder="10" />
+            </div>
+            <div class="btn-group">
+              <button class="btn btn-green btn-sm" onclick="restock()">
+                <span class="m post">POST</span> Restock +qty
+              </button>
+              <button class="btn btn-orange btn-sm" onclick="destock()">
+                <span class="m post">POST</span> Destock −qty
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reviews -->
+        <div class="card">
+          <div class="card-title">Reviews</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 9px">
+            <div class="field">
+              <label>Product ID</label
+              ><input id="rid" type="number" placeholder="1" />
+            </div>
+            <div class="field">
+              <label>Rating (1–5)</label>
+              <select id="rrating">
+                <option value="5">★★★★★ 5</option>
+                <option value="4">★★★★☆ 4</option>
+                <option value="3">★★★☆☆ 3</option>
+                <option value="2">★★☆☆☆ 2</option>
+                <option value="1">★☆☆☆☆ 1</option>
+              </select>
+            </div>
+            <div class="field" style="grid-column: span 2">
+              <label>Comment</label
+              ><input id="rcomment" placeholder="Great product!" />
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-ghost btn-sm" onclick="loadReviews()">
+              <span class="m get">GET</span> List reviews
+            </button>
+            <button class="btn btn-green btn-sm" onclick="addReview()">
+              <span class="m post">POST</span> Add review
+            </button>
+          </div>
+          <div id="reviews-list" style="margin-top: 10px"></div>
+        </div>
+
+        <!-- Bulk operations -->
+        <div class="card">
+          <div class="card-title">Bulk Operations (admin)</div>
+          <div class="field">
+            <label>Products JSON array (name, category, price required)</label>
+            <textarea
+              id="bulk-json"
+              style="
+                min-height: 80px;
+                font-family:
+                  JetBrains Mono,
+                  monospace;
+                font-size: 11px;
+              "
+            >
+[
+  {"name":"Item A","category":"tools","price":9.99,"stock":5},
+  {"name":"Item B","category":"tools","price":14.99,"stock":3}
+]</textarea
+            >
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-green btn-sm" onclick="bulkCreate()">
+              <span class="m post">POST</span> Bulk Create
+            </button>
+          </div>
+          <hr class="sep" />
+          <div class="field">
+            <label>IDs to bulk delete (comma-separated)</label>
+            <input id="bulk-ids" placeholder="5,6,7" />
+          </div>
+          <button class="btn btn-red btn-sm" onclick="bulkDelete()">
+            <span class="m delete">DELETE</span> Bulk Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Response panel -->
+    <div id="resp-panel">
+      <div id="resp-header" onclick="toggleResp()">
+        <span>API Response</span>
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span id="rs" class="rs rs-neu">—</span>
+          <span id="rtog" style="color: #555; font-size: 11px">▼ collapse</span>
+        </div>
+      </div>
+      <pre id="resp-body">Hit an endpoint to see the JSON response here...</pre>
+    </div>
+
+    <script>
+      // ── State ─────────────────────────────────────────────
+      let TOKEN = localStorage.getItem("lab01_token") || "";
+      let curPage = 1,
+        totalPages = 1;
+      let respOpen = true;
+
+      // ── Core helpers ──────────────────────────────────────
+      function hdrs() {
+        const h = { "Content-Type": "application/json" };
+        if (TOKEN) h["Authorization"] = "Bearer " + TOKEN;
+        return h;
+      }
+
+      function showResp(data, status) {
+        document.getElementById("resp-body").textContent = JSON.stringify(
+          data,
+          null,
+          2,
+        );
+        const el = document.getElementById("rs");
+        if (status >= 200 && status < 300) {
+          el.className = "rs rs-ok";
+          el.textContent = status + " OK";
+        } else {
+          el.className = "rs rs-err";
+          el.textContent = status + " Error";
+        }
+        if (!respOpen) toggleResp();
+      }
+
+      function toggleResp() {
+        respOpen = !respOpen;
+        document.getElementById("resp-body").style.display = respOpen
+          ? "block"
+          : "none";
+        document.getElementById("rtog").textContent = respOpen
+          ? "▼ collapse"
+          : "▲ expand";
+      }
+
+      async function api(url, opts = {}) {
+        const res = await fetch(url, { headers: hdrs(), ...opts });
+        const data =
+          res.status === 204
+            ? {
+                success: true,
+                message: "204 No Content — deleted successfully",
+              }
+            : await res.json();
+        showResp(data, res.status);
+        return { data, ok: res.ok, status: res.status };
+      }
+
+      function updatePill() {
+        const el = document.getElementById("auth-pill");
+        if (!TOKEN) {
+          el.textContent = "Not logged in";
+          return;
+        }
+        try {
+          const p = JSON.parse(atob(TOKEN.split(".")[1]));
+          const colors = {
+            viewer: "#0369a1",
+            editor: "#15803d",
+            admin: "#b45309",
+          };
+          const bgs = {
+            viewer: "#e0f2fe",
+            editor: "#dcfce7",
+            admin: "#fef3c7",
+          };
+          el.innerHTML = `${p.username} <span style="background:${bgs[p.role] || "#eee"};color:${colors[p.role] || "#555"};padding:1px 7px;border-radius:99px;font-size:10px;font-weight:700;">${p.role}</span>`;
+        } catch {
+          el.textContent = "Logged in";
+        }
+      }
+
+      // ── Auth ──────────────────────────────────────────────
+      async function register() {
+        const { data, ok } = await api("/api/auth/register", {
+          method: "POST",
+          body: JSON.stringify({
+            username: document.getElementById("ru").value.trim(),
+            password: document.getElementById("rp").value,
+            role: document.getElementById("rr").value,
+          }),
+        });
+        if (ok && data.data?.token) {
+          TOKEN = data.data.token;
+          localStorage.setItem("lab01_token", TOKEN);
+          updatePill();
+        }
+      }
+
+      async function login() {
+        const { data, ok } = await api("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({
+            username: document.getElementById("lu").value.trim(),
+            password: document.getElementById("lp").value,
+          }),
+        });
+        if (ok && data.data?.token) {
+          TOKEN = data.data.token;
+          localStorage.setItem("lab01_token", TOKEN);
+          updatePill();
+        }
+      }
+
+      function logout() {
+        TOKEN = "";
+        localStorage.removeItem("lab01_token");
+        updatePill();
+        showResp(
+          { success: true, message: "Token cleared — you are logged out" },
+          200,
+        );
+      }
+
+      async function getMe() {
+        await api("/api/auth/me");
+      }
+
+      // ── Stats ─────────────────────────────────────────────
+      async function loadStats() {
+        const { data } = await api("/api/stats");
+        if (data.success) {
+          document.getElementById("st-u").textContent = data.data.users;
+          document.getElementById("st-c").textContent = data.data.categories;
+          document.getElementById("st-p").textContent = data.data.products;
+          document.getElementById("st-s").textContent = data.data.totalStock;
+        }
+      }
+
+      async function seedData() {
+        await api("/api/seed", { method: "POST" });
+        loadStats();
+        loadProducts();
+        loadCategories();
+      }
+
+      // ── Categories ────────────────────────────────────────
+      async function loadCategories() {
+        const { data } = await api("/api/categories");
+        const el = document.getElementById("cat-list");
+        if (!data.success || !data.data.length) {
+          el.innerHTML =
+            "<p style='color:#aaa;font-size:12px'>No categories yet</p>";
+          return;
+        }
+        el.innerHTML = data.data
+          .map(
+            (c) =>
+              `<div class="cat-row">
+          <span>${c.id} · <strong>${c.name}</strong>
+            <span style="color:#888;margin-left:4px">(${c.product_count} products)</span>
+          </span>
+          <button class="btn btn-red btn-sm" onclick="deleteCategoryById(${c.id})">Delete</button>
+        </div>`,
+          )
+          .join("");
+      }
+
+      async function createCategory() {
+        const name = document.getElementById("cn").value.trim();
+        if (!name) return alert("Enter a category name");
+        const { ok } = await api("/api/categories", {
+          method: "POST",
+          body: JSON.stringify({ name }),
+        });
+        if (ok) {
+          document.getElementById("cn").value = "";
+          loadCategories();
+        }
+      }
+
+      function deleteCategoryInput() {
+        const id = document.getElementById("cd").value;
+        if (!id) return alert("Enter a category ID");
+        deleteCategoryById(Number(id));
+      }
+
+      async function deleteCategoryById(id) {
+        const { ok } = await api(`/api/categories/${id}`, { method: "DELETE" });
+        if (ok) loadCategories();
+      }
+
+      // ── Products ──────────────────────────────────────────
+      function resetFilters() {
+        ["fq", "fc", "fminp", "fmaxp", "fmins", "fmaxs"].forEach(
+          (id) => (document.getElementById(id).value = ""),
+        );
+        document.getElementById("fsort").value = "created_at";
+        document.getElementById("forder").value = "desc";
+        document.getElementById("flimit").value = "10";
+        document.getElementById("fpage").value = "1";
+        curPage = 1;
+        loadProducts();
+      }
+
+      async function loadProducts() {
+        curPage = parseInt(document.getElementById("fpage").value) || 1;
+        const p = new URLSearchParams();
+        const add = (eid, key) => {
+          const v = document.getElementById(eid).value.trim();
+          if (v) p.set(key, v);
+        };
+        add("fq", "q");
+        add("fc", "category");
+        add("fminp", "min_price");
+        add("fmaxp", "max_price");
+        add("fmins", "min_stock");
+        add("fmaxs", "max_stock");
+        p.set("sort", document.getElementById("fsort").value);
+        p.set("order", document.getElementById("forder").value);
+        p.set("limit", document.getElementById("flimit").value);
+        p.set("page", curPage);
+
+        const { data } = await api(`/api/products?${p}`);
+        if (!data.success) return;
+        totalPages = data.totalPages || 1;
+        document.getElementById("page-info").textContent =
+          `Page ${data.page} / ${data.totalPages}  ·  ${data.total} total`;
+
+        const tbody = document.getElementById("ptbody");
+        if (!data.data.length) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#aaa;padding:14px">No products found</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = data.data
+          .map(
+            (p) => `
+        <tr>
+          <td>${p.id}</td>
+          <td><strong>${esc(p.name)}</strong></td>
+          <td><span style="background:#f0f9ff;color:#0369a1;padding:2px 7px;border-radius:99px;font-size:11px">${esc(p.category)}</span></td>
+          <td>$${p.price.toFixed(2)}</td>
+          <td>${p.stock}</td>
+          <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(p.description)}">${esc(p.description) || "—"}</td>
+          <td>
+            <div class="btn-group">
+              <button class="btn btn-ghost btn-sm" onclick="fillForm(${p.id},'${ejsc(p.name)}','${ejsc(p.category)}',${p.price},${p.stock},'${ejsc(p.description)}')">Edit</button>
+              <button class="btn btn-red btn-sm" onclick="deleteById(${p.id})">Delete</button>
+            </div>
+          </td>
+        </tr>`,
+          )
+          .join("");
+      }
+
+      function esc(s) {
+        return String(s || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+      function ejsc(s) {
+        return String(s || "")
+          .replace(/\\/g, "\\\\")
+          .replace(/'/g, "\\'");
+      }
+
+      function fillForm(id, name, cat, price, stock, desc) {
+        document.getElementById("pid").value = id;
+        document.getElementById("pn").value = name;
+        document.getElementById("pcat").value = cat;
+        document.getElementById("ppr").value = price;
+        document.getElementById("pst").value = stock;
+        document.getElementById("pdesc").value = desc;
+        document.querySelector(".main").scrollTop = 9999;
+      }
+
+      function prevPage() {
+        if (curPage <= 1) return;
+        document.getElementById("fpage").value = curPage - 1;
+        loadProducts();
+      }
+      function nextPage() {
+        if (curPage >= totalPages) return;
+        document.getElementById("fpage").value = curPage + 1;
+        loadProducts();
+      }
+
+      function productBody(partial) {
+        const body = {};
+        const n = document.getElementById("pn").value.trim();
+        const cat = document.getElementById("pcat").value.trim();
+        const pr = parseFloat(document.getElementById("ppr").value);
+        const st = parseInt(document.getElementById("pst").value);
+        const desc = document.getElementById("pdesc").value.trim();
+        if (partial) {
+          if (n) body.name = n;
+          if (cat) body.category = cat;
+          if (!isNaN(pr)) body.price = pr;
+          if (!isNaN(st)) body.stock = st;
+          if (desc) body.description = desc;
+        } else {
+          body.name = n;
+          body.category = cat;
+          body.price = pr;
+          body.stock = isNaN(st) ? 0 : st;
+          body.description = desc;
+        }
+        return body;
+      }
+
+      async function getProduct() {
+        const id = document.getElementById("pid").value;
+        if (!id) return alert("Enter a product ID");
+        await api(`/api/products/${id}`);
+      }
+      async function createProduct() {
+        const { ok } = await api("/api/products", {
+          method: "POST",
+          body: JSON.stringify(productBody(false)),
+        });
+        if (ok) loadProducts();
+      }
+      async function putProduct() {
+        const id = document.getElementById("pid").value;
+        if (!id) return alert("Enter a product ID");
+        const { ok } = await api(`/api/products/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(productBody(false)),
+        });
+        if (ok) loadProducts();
+      }
+      async function patchProduct() {
+        const id = document.getElementById("pid").value;
+        if (!id) return alert("Enter a product ID");
+        const { ok } = await api(`/api/products/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify(productBody(true)),
+        });
+        if (ok) loadProducts();
+      }
+      async function deleteProduct() {
+        const id = document.getElementById("pid").value;
+        if (!id) return alert("Enter a product ID");
+        await deleteById(Number(id));
+      }
+      async function deleteById(id) {
+        if (!confirm(`Delete product #${id}?`)) return;
+        const { ok } = await api(`/api/products/${id}`, { method: "DELETE" });
+        if (ok) loadProducts();
+      }
+
+      // ── Stock ─────────────────────────────────────────────
+      async function restock() {
+        const id = document.getElementById("sid").value;
+        const qty = parseInt(document.getElementById("sqty").value);
+        if (!id || isNaN(qty)) return alert("Enter product ID and qty");
+        const { ok } = await api(`/api/products/${id}/restock`, {
+          method: "POST",
+          body: JSON.stringify({ qty }),
+        });
+        if (ok) loadProducts();
+      }
+      async function destock() {
+        const id = document.getElementById("sid").value;
+        const qty = parseInt(document.getElementById("sqty").value);
+        if (!id || isNaN(qty)) return alert("Enter product ID and qty");
+        const { ok } = await api(`/api/products/${id}/destock`, {
+          method: "POST",
+          body: JSON.stringify({ qty }),
+        });
+        if (ok) loadProducts();
+      }
+
+      // ── Reviews ───────────────────────────────────────────
+      async function loadReviews() {
+        const id = document.getElementById("rid").value;
+        if (!id) return alert("Enter a product ID");
+        const { data } = await api(`/api/products/${id}/reviews`);
+        const el = document.getElementById("reviews-list");
+        if (!data.success) {
+          el.innerHTML = "";
+          return;
+        }
+        if (!data.data.length) {
+          el.innerHTML = `<p style="color:#aaa;font-size:12px">No reviews yet for product #${id}</p>`;
+          return;
+        }
+        el.innerHTML =
+          `<p style="font-size:12px;margin-bottom:8px;color:#555">
+        ${data.total} reviews · avg rating: <strong>${data.avgRating} ★</strong></p>` +
+          data.data
+            .map(
+              (r) => `
+          <div class="review-row">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="stars">${"★".repeat(r.rating)}${"☆".repeat(5 - r.rating)}</span>
+              <span style="color:#888;font-size:11px">${r.username} · ${r.created_at.slice(0, 10)}</span>
+            </div>
+            ${r.comment ? `<div style="margin-top:4px;color:#444">${esc(r.comment)}</div>` : ""}
+          </div>`,
+            )
+            .join("");
+      }
+
+      async function addReview() {
+        const id = document.getElementById("rid").value;
+        if (!id) return alert("Enter a product ID");
+        const { ok } = await api(`/api/products/${id}/reviews`, {
+          method: "POST",
+          body: JSON.stringify({
+            rating: parseInt(document.getElementById("rrating").value),
+            comment: document.getElementById("rcomment").value.trim(),
+          }),
+        });
+        if (ok) {
+          document.getElementById("rcomment").value = "";
+          loadReviews();
+        }
+      }
+
+      // ── Bulk ──────────────────────────────────────────────
+      async function bulkCreate() {
+        let products;
+        try {
+          products = JSON.parse(document.getElementById("bulk-json").value);
+        } catch {
+          return alert("Invalid JSON in the textarea");
+        }
+        const { ok } = await api("/api/products/bulk-create", {
+          method: "POST",
+          body: JSON.stringify({ products }),
+        });
+        if (ok) loadProducts();
+      }
+
+      async function bulkDelete() {
+        const raw = document.getElementById("bulk-ids").value;
+        const ids = raw
+          .split(",")
+          .map((s) => parseInt(s.trim()))
+          .filter((n) => !isNaN(n));
+        if (!ids.length) return alert("Enter comma-separated product IDs");
+        if (!confirm(`Delete products: ${ids.join(", ")}?`)) return;
+        const { ok } = await api("/api/products/bulk-delete", {
+          method: "DELETE",
+          body: JSON.stringify({ ids }),
+        });
+        if (ok) loadProducts();
+      }
+
+      // ── Advanced queries ──────────────────────────────────
+      async function loadAggregates() {
+        await api("/api/products/aggregates");
+      }
+      async function loadTopRated() {
+        await api("/api/products/top-rated");
+      }
+      async function loadLowStock() {
+        await api("/api/products/low-stock");
+      }
+
+      // ── Init ──────────────────────────────────────────────
+      updatePill();
+      loadStats();
+      loadProducts();
+    </script>
+  </body>
+</html>

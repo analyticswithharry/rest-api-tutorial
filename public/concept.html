@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>REST API — Concept Notes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: Manrope, sans-serif; background: #f7f4ed; color: #111; line-height: 1.65; padding: 24px; }
+      .wrap { max-width: 860px; margin: 0 auto; }
+
+      header { background: #111; color: #fff; padding: 18px 24px; border-radius: 14px; margin-bottom: 24px; }
+      header h1 { font-size: 20px; margin-bottom: 4px; }
+      header p  { font-size: 13px; color: #aaa; }
+      header a  { color: #9ee7a7; text-decoration: none; }
+
+      section { background: #fff; border: 1px solid #e5e0d4; border-radius: 14px; padding: 20px 24px; margin-bottom: 16px; }
+      h2 { font-size: 16px; font-weight: 700; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid #f0ede6; }
+      h3 { font-size: 14px; font-weight: 700; margin: 14px 0 8px; color: #333; }
+      p  { font-size: 13px; color: #444; margin-bottom: 10px; }
+      ul, ol { padding-left: 20px; font-size: 13px; color: #444; }
+      li { margin-bottom: 5px; }
+
+      code {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px; background: #f3f0e8;
+        padding: 2px 6px; border-radius: 5px; color: #7c3aed;
+      }
+      pre {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px; background: #151515; color: #9ee7a7;
+        padding: 14px 16px; border-radius: 10px; overflow-x: auto;
+        margin: 10px 0; line-height: 1.6;
+      }
+      pre .comment { color: #6a6a6a; }
+      pre .key     { color: #79c0ff; }
+      pre .str     { color: #a5d6ff; }
+      pre .num     { color: #f0c674; }
+
+      table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 10px 0; }
+      th { background: #f9f8f5; text-align: left; padding: 8px 10px; font-weight: 700; color: #555; border-bottom: 1px solid #e5e0d4; }
+      td { padding: 8px 10px; border-bottom: 1px solid #f0ede6; vertical-align: top; }
+
+      .pill { display: inline-block; padding: 2px 9px; border-radius: 99px; font-size: 11px; font-weight: 700; font-family: "JetBrains Mono", monospace; }
+      .get    { background: #dcfce7; color: #15803d; }
+      .post   { background: #dbeafe; color: #1d4ed8; }
+      .put    { background: #fef3c7; color: #92400e; }
+      .patch  { background: #ede9fe; color: #6d28d9; }
+      .delete { background: #fee2e2; color: #b91c1c; }
+      .auth   { background: #f3f4f6; color: #374151; }
+
+      .callout { background: #fffbeb; border-left: 3px solid #f59e0b; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 13px; }
+      .tip { background: #f0fdf4; border-left: 3px solid #22c55e; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 13px; }
+
+      .endpoint-row { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid #f5f3ee; font-size: 12px; }
+      .endpoint-row:last-child { border-bottom: none; }
+      .ep-path { font-family: "JetBrains Mono", monospace; font-weight: 600; color: #111; min-width: 280px; }
+      .ep-desc { color: #555; flex: 1; }
+      .ep-auth { font-size: 10px; background: #fef3c7; color: #92400e; padding: 1px 6px; border-radius: 99px; white-space: nowrap; }
+    </style>
+  </head>
+  <body>
+  <div class="wrap">
+
+    <header>
+      <h1>REST API Concept Notes</h1>
+      <p>A complete guide to REST architecture, HTTP verbs, status codes, database operations, and auth patterns. &nbsp;<a href="/">← Back to Lab</a> &nbsp;·&nbsp; <a href="/practice.html">Open Practice Page</a></p>
+    </header>
+
+    <!-- ── 1. What is REST ── -->
+    <section>
+      <h2>1. What is REST?</h2>
+      <p><strong>REST</strong> (Representational State Transfer) is an <em>architectural style</em> for building distributed systems over HTTP. It was defined by Roy Fielding in his 2000 PhD dissertation. REST is not a protocol or standard — it's a set of constraints that, when followed, produce scalable, stateless, cacheable web services.</p>
+      <p>A service that fully follows REST constraints is called <strong>RESTful</strong>. The key idea: <em>everything is a resource</em>, and clients interact with resources using a uniform interface (HTTP methods + URLs).</p>
+
+      <h3>The 6 REST Constraints</h3>
+      <table>
+        <thead><tr><th>Constraint</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Client-Server</strong></td><td>UI and backend are decoupled. They communicate only via the API. Each can evolve independently.</td></tr>
+          <tr><td><strong>Stateless</strong></td><td>Every request must contain all information needed to process it. The server stores no client session state between requests.</td></tr>
+          <tr><td><strong>Cacheable</strong></td><td>Responses must label themselves as cacheable or non-cacheable. Improves scalability and performance.</td></tr>
+          <tr><td><strong>Uniform Interface</strong></td><td>A single, consistent way to interact with all resources (standardised URLs + HTTP methods + JSON).</td></tr>
+          <tr><td><strong>Layered System</strong></td><td>Clients don't need to know if they're talking directly to the server or through a proxy, CDN, or load balancer.</td></tr>
+          <tr><td><strong>Code on Demand</strong> (optional)</td><td>Server can return executable code (e.g. JavaScript). Rarely used.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── 2. HTTP Methods ── -->
+    <section>
+      <h2>2. HTTP Methods (Verbs)</h2>
+      <p>REST uses standard HTTP verbs to express <em>what action</em> to perform on a resource.</p>
+      <table>
+        <thead><tr><th>Method</th><th>Action</th><th>Safe?</th><th>Idempotent?</th><th>Body?</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="pill get">GET</span></td>
+            <td>Read a resource (or collection)</td>
+            <td>✅ Yes</td><td>✅ Yes</td><td>❌ No</td>
+          </tr>
+          <tr>
+            <td><span class="pill post">POST</span></td>
+            <td>Create a new resource</td>
+            <td>❌ No</td><td>❌ No</td><td>✅ Yes</td>
+          </tr>
+          <tr>
+            <td><span class="pill put">PUT</span></td>
+            <td>Replace a resource entirely</td>
+            <td>❌ No</td><td>✅ Yes</td><td>✅ Yes</td>
+          </tr>
+          <tr>
+            <td><span class="pill patch">PATCH</span></td>
+            <td>Partially update a resource</td>
+            <td>❌ No</td><td>✅ Yes</td><td>✅ Yes</td>
+          </tr>
+          <tr>
+            <td><span class="pill delete">DELETE</span></td>
+            <td>Remove a resource</td>
+            <td>❌ No</td><td>✅ Yes</td><td>❌ No</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>Safe</strong> = does not modify data. &nbsp;&nbsp;
+        <strong>Idempotent</strong> = calling it N times has the same effect as calling it once.
+      </div>
+
+      <h3>PUT vs PATCH — key difference</h3>
+      <pre><span class="comment">// PUT — send the entire object (missing fields reset to defaults)</span>
+PUT /api/products/1
+{ "name": "Laptop Stand", "category": "electronics", "price": 44.99, "stock": 50 }
+
+<span class="comment">// PATCH — send only the fields you want to change</span>
+PATCH /api/products/1
+{ "price": 44.99 }   <span class="comment">// only price changes; everything else stays the same</span></pre>
+    </section>
+
+    <!-- ── 3. Status Codes ── -->
+    <section>
+      <h2>3. HTTP Status Codes</h2>
+      <p>Status codes tell the client <em>what happened</em> to their request.</p>
+      <table>
+        <thead><tr><th>Code</th><th>Meaning</th><th>When to use</th></tr></thead>
+        <tbody>
+          <tr><td><strong>200 OK</strong></td><td>Success</td><td>GET, PUT, PATCH succeeded</td></tr>
+          <tr><td><strong>201 Created</strong></td><td>New resource created</td><td>POST succeeded; include <code>Location</code> header</td></tr>
+          <tr><td><strong>204 No Content</strong></td><td>Success, no body</td><td>DELETE succeeded</td></tr>
+          <tr><td><strong>400 Bad Request</strong></td><td>Client sent invalid data</td><td>Validation failed</td></tr>
+          <tr><td><strong>401 Unauthorized</strong></td><td>Not authenticated</td><td>Missing or invalid token</td></tr>
+          <tr><td><strong>403 Forbidden</strong></td><td>Not authorised</td><td>Token valid but role insufficient</td></tr>
+          <tr><td><strong>404 Not Found</strong></td><td>Resource doesn't exist</td><td>ID not in DB</td></tr>
+          <tr><td><strong>409 Conflict</strong></td><td>State conflict</td><td>Duplicate username, unique constraint</td></tr>
+          <tr><td><strong>500 Internal Server Error</strong></td><td>Bug on the server</td><td>Unhandled exceptions</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── 4. URL Design ── -->
+    <section>
+      <h2>4. URL Design Principles</h2>
+      <h3>Use nouns, not verbs</h3>
+      <pre><span class="comment">// ❌ Bad — verbs in URL</span>
+GET /getProducts
+POST /createProduct
+DELETE /deleteProduct/5
+
+<span class="comment">// ✅ Good — nouns + HTTP verb carries the action</span>
+GET    /api/products
+POST   /api/products
+DELETE /api/products/5</pre>
+
+      <h3>Nested resources for relationships</h3>
+      <pre><span class="comment">// Reviews belong to a product</span>
+GET    /api/products/1/reviews      <span class="comment">// list reviews for product 1</span>
+POST   /api/products/1/reviews      <span class="comment">// add a review to product 1</span>
+DELETE /api/reviews/42              <span class="comment">// delete review #42 (flat, still ok)</span></pre>
+
+      <h3>Query strings for filtering, searching, sorting</h3>
+      <pre>GET /api/products?category=electronics&min_price=20&sort=price&order=asc&page=2&limit=10</pre>
+
+      <div class="tip">Keep URLs lowercase, use hyphens not underscores, be consistent with plurals (<code>/products</code> not <code>/product</code>).</div>
+    </section>
+
+    <!-- ── 5. Request / Response anatomy ── -->
+    <section>
+      <h2>5. Request &amp; Response Anatomy</h2>
+      <h3>Request</h3>
+      <pre>POST /api/products HTTP/1.1
+Host: localhost:4101
+Content-Type: application/json
+Authorization: Bearer eyJhbGci...   <span class="comment">← JWT token</span>
+
+{
+  "name": "USB-C Hub",
+  "category": "electronics",
+  "price": 24.99,
+  "stock": 100
+}</pre>
+
+      <h3>Response</h3>
+      <pre>HTTP/1.1 201 Created
+Content-Type: application/json
+Location: /api/products/9           <span class="comment">← where to find the new resource</span>
+
+{
+  "success": true,
+  "data": {
+    "id": 9,
+    "name": "USB-C Hub",
+    "category": "electronics",
+    "price": 24.99,
+    "stock": 100,
+    "description": "",
+    "created_at": "2026-05-21T10:00:00",
+    "updated_at": "2026-05-21T10:00:00"
+  }
+}</pre>
+
+      <h3>Error Response (consistent shape)</h3>
+      <pre>HTTP/1.1 400 Bad Request
+
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "'price' must be a non-negative number"
+  }
+}</pre>
+    </section>
+
+    <!-- ── 6. Authentication ── -->
+    <section>
+      <h2>6. Authentication with JWT</h2>
+      <p>This lab uses <strong>JSON Web Tokens (JWT)</strong>. The flow is:</p>
+      <ol>
+        <li>Client sends <code>POST /api/auth/register</code> or <code>POST /api/auth/login</code> with credentials.</li>
+        <li>Server verifies credentials and returns a signed JWT.</li>
+        <li>Client stores the token and sends it in every subsequent request as: <code>Authorization: Bearer &lt;token&gt;</code></li>
+        <li>Server verifies the token signature on protected routes. If invalid → 401.</li>
+      </ol>
+
+      <h3>JWT structure</h3>
+      <pre><span class="comment">// Three base64-encoded parts separated by dots</span>
+eyJhbGciOiJIUzI1NiJ9    <span class="comment">← Header (algorithm)</span>
+.eyJpZCI6MSwidXNlcm5hbWUiOiJhbGljZSIsInJvbGUiOiJhZG1pbiJ9  <span class="comment">← Payload</span>
+.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c               <span class="comment">← Signature</span></pre>
+
+      <h3>RBAC — Role-Based Access Control</h3>
+      <table>
+        <thead><tr><th>Role</th><th>GET</th><th>POST / PUT / PATCH</th><th>DELETE</th></tr></thead>
+        <tbody>
+          <tr><td><strong>viewer</strong></td><td>✅</td><td>❌</td><td>❌</td></tr>
+          <tr><td><strong>editor</strong></td><td>✅</td><td>✅</td><td>❌</td></tr>
+          <tr><td><strong>admin</strong></td><td>✅</td><td>✅</td><td>✅</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── 7. Database operations ── -->
+    <section>
+      <h2>7. Database Operations in This Lab</h2>
+      <p>The server uses <strong>SQLite</strong> (file-based SQL database) via the <code>sqlite3</code> Node.js driver. Four tables are created automatically on first start.</p>
+
+      <h3>Schema</h3>
+      <pre>users         id, username, password_hash, role, created_at
+categories    id, name, description, created_at
+products      id, name, category, price, stock, description, created_at, updated_at
+reviews       id, product_id, user_id, rating, comment, created_at</pre>
+
+      <h3>Key SQL patterns used</h3>
+      <pre><span class="comment">-- CRUD: basic operations</span>
+SELECT * FROM products WHERE id = ?
+INSERT INTO products (name, category, price) VALUES (?,?,?)
+UPDATE products SET price=?, updated_at=CURRENT_TIMESTAMP WHERE id=?
+DELETE FROM products WHERE id = ?
+
+<span class="comment">-- Filtering + pagination</span>
+SELECT * FROM products
+  WHERE category = ? AND price >= ? AND (name LIKE ? OR description LIKE ?)
+  ORDER BY price ASC
+  LIMIT 10 OFFSET 20;    <span class="comment">← page 3 of 10 results</span>
+
+<span class="comment">-- JOIN (products + reviews)</span>
+SELECT p.name, ROUND(AVG(r.rating),1) AS avg_rating, COUNT(r.id) AS reviews
+FROM products p
+LEFT JOIN reviews r ON r.product_id = p.id
+GROUP BY p.id
+ORDER BY avg_rating DESC;
+
+<span class="comment">-- Aggregation (GROUP BY + aggregate functions)</span>
+SELECT category, COUNT(*) AS count, MIN(price), MAX(price), AVG(price), SUM(stock)
+FROM products
+GROUP BY category;
+
+<span class="comment">-- Transaction (bulk insert — all or nothing)</span>
+BEGIN TRANSACTION;
+  INSERT INTO products ...;
+  INSERT INTO products ...;
+COMMIT;</pre>
+
+      <h3>Stock management pattern</h3>
+      <pre><span class="comment">-- Atomic increment (safe for concurrent requests)</span>
+UPDATE products SET stock = stock + ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?
+
+<span class="comment">-- Check-then-decrement (prevents negative stock)</span>
+<span class="comment">-- 1. Read current stock</span>
+SELECT stock FROM products WHERE id = ?
+<span class="comment">-- 2. If stock >= qty → proceed</span>
+UPDATE products SET stock = stock - ? WHERE id = ?</pre>
+    </section>
+
+    <!-- ── 8. All endpoints ── -->
+    <section>
+      <h2>8. Complete Endpoint Reference</h2>
+
+      <h3>System</h3>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/health</span><span class="ep-desc">Server health check</span></div>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/stats</span><span class="ep-desc">DB stats: counts, avg price, total stock, top categories</span></div>
+
+      <h3 style="margin-top:14px;">Auth</h3>
+      <div class="endpoint-row"><span class="pill post">POST</span><span class="ep-path">/api/auth/register</span><span class="ep-desc">Register user → returns JWT</span></div>
+      <div class="endpoint-row"><span class="pill post">POST</span><span class="ep-path">/api/auth/login</span><span class="ep-desc">Login → returns JWT</span></div>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/auth/me</span><span class="ep-desc">Current user info</span><span class="ep-auth">any role</span></div>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/users</span><span class="ep-desc">List all users</span><span class="ep-auth">admin</span></div>
+
+      <h3 style="margin-top:14px;">Seed</h3>
+      <div class="endpoint-row"><span class="pill post">POST</span><span class="ep-path">/api/seed</span><span class="ep-desc">Insert 4 categories + 8 sample products</span><span class="ep-auth">admin</span></div>
+
+      <h3 style="margin-top:14px;">Categories</h3>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/categories</span><span class="ep-desc">List all categories with product_count (JOIN)</span></div>
+      <div class="endpoint-row"><span class="pill post">POST</span><span class="ep-path">/api/categories</span><span class="ep-desc">Create category</span><span class="ep-auth">admin</span></div>
+      <div class="endpoint-row"><span class="pill delete">DELETE</span><span class="ep-path">/api/categories/:id</span><span class="ep-desc">Delete category</span><span class="ep-auth">admin</span></div>
+
+      <h3 style="margin-top:14px;">Products — CRUD</h3>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/products</span><span class="ep-desc">List with ?q, category, min/max_price, min/max_stock, sort, order, page, limit</span></div>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/products/:id</span><span class="ep-desc">Get single product</span></div>
+      <div class="endpoint-row"><span class="pill post">POST</span><span class="ep-path">/api/products</span><span class="ep-desc">Create product</span><span class="ep-auth">editor/admin</span></div>
+      <div class="endpoint-row"><span class="pill put">PUT</span><span class="ep-path">/api/products/:id</span><span class="ep-desc">Full replace</span><span class="ep-auth">editor/admin</span></div>
+      <div class="endpoint-row"><span class="pill patch">PATCH</span><span class="ep-path">/api/products/:id</span><span class="ep-desc">Partial update</span><span class="ep-auth">editor/admin</span></div>
+      <div class="endpoint-row"><span class="pill delete">DELETE</span><span class="ep-path">/api/products/:id</span><span class="ep-desc">Delete product</span><span class="ep-auth">admin</span></div>
+
+      <h3 style="margin-top:14px;">Products — Advanced queries</h3>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/products/search/advanced</span><span class="ep-desc">Full-text + price range + in_stock filter</span></div>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/products/aggregates</span><span class="ep-desc">GROUP BY category — count, min/max/avg price, total stock, avg rating</span></div>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/products/top-rated</span><span class="ep-desc">Products ranked by avg review rating (JOIN)</span></div>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/products/low-stock</span><span class="ep-desc">Products at or below ?threshold (default 20)</span><span class="ep-auth">editor/admin</span></div>
+
+      <h3 style="margin-top:14px;">Stock management</h3>
+      <div class="endpoint-row"><span class="pill post">POST</span><span class="ep-path">/api/products/:id/restock</span><span class="ep-desc">Increment stock by { qty }</span><span class="ep-auth">editor/admin</span></div>
+      <div class="endpoint-row"><span class="pill post">POST</span><span class="ep-path">/api/products/:id/destock</span><span class="ep-desc">Decrement stock by { qty } — prevents going below 0</span><span class="ep-auth">editor/admin</span></div>
+
+      <h3 style="margin-top:14px;">Reviews</h3>
+      <div class="endpoint-row"><span class="pill get">GET</span><span class="ep-path">/api/products/:id/reviews</span><span class="ep-desc">List reviews for a product with avg rating</span></div>
+      <div class="endpoint-row"><span class="pill post">POST</span><span class="ep-path">/api/products/:id/reviews</span><span class="ep-desc">Add review { rating:1–5, comment }</span><span class="ep-auth">any role</span></div>
+      <div class="endpoint-row"><span class="pill delete">DELETE</span><span class="ep-path">/api/reviews/:id</span><span class="ep-desc">Delete a review (admin or own review)</span><span class="ep-auth">any role</span></div>
+
+      <h3 style="margin-top:14px;">Bulk operations</h3>
+      <div class="endpoint-row"><span class="pill post">POST</span><span class="ep-path">/api/products/bulk-create</span><span class="ep-desc">Insert array of products in a SQL transaction</span><span class="ep-auth">admin</span></div>
+      <div class="endpoint-row"><span class="pill delete">DELETE</span><span class="ep-path">/api/products/bulk-delete</span><span class="ep-desc">Delete multiple products by IDs array</span><span class="ep-auth">admin</span></div>
+    </section>
+
+    <!-- ── 9. Quick start ── -->
+    <section>
+      <h2>9. Quick Start</h2>
+      <pre><span class="comment"># 1. Install dependencies</span>
+cd labs/rest-api
+npm install
+
+<span class="comment"># 2. Start the server</span>
+npm start
+<span class="comment"># → REST API Lab running → http://localhost:4101</span>
+
+<span class="comment"># 3. Register an admin user</span>
+curl -X POST http://localhost:4101/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"secret123","role":"admin"}'
+
+<span class="comment"># 4. Login and capture the token</span>
+curl -X POST http://localhost:4101/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"secret123"}'
+
+<span class="comment"># 5. Seed sample data (using the token from step 4)</span>
+curl -X POST http://localhost:4101/api/seed \
+  -H "Authorization: Bearer &lt;token&gt;"
+
+<span class="comment"># 6. List products with filters</span>
+curl "http://localhost:4101/api/products?category=electronics&sort=price&order=asc"</pre>
+
+      <div class="tip">
+        Open <a href="/">http://localhost:4101</a> in your browser for the fully interactive UI — no curl needed.
+      </div>
+    </section>
+
+  </div>
+  </body>
+</html>
